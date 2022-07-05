@@ -1,28 +1,21 @@
-const http = require('http');
-const fs = require('fs');
+const express = require("express");
+const path = require("path");
+const { readFileSync } = require("fs");
+
 const port = 8080;
+const app = express();
 
-const requestListener = function (req, res) {
-  fs.readFile('index.html', function(err, data){
-    res.writeHead(200, {
-      'Content-Type': 'text/html',
-      'Content-Length': data.length
-    });
-    res.write(data);
-    res.end();
-  });
-}
+const readGpsDataFromFile = function (req, res) {
+	const contents = readFileSync(path.join(__dirname, "/data.txt"), "utf-8");
+	res.json({ gpsData: contents });
+};
 
-const server = http.createServer(requestListener);
-server.listen(port);
+app.get("/", function (req, res) {
+	res.sendFile(path.join(__dirname, "/index.html"));
+});
 
-function updateFromText(){
-  fs.readFile('data.txt', 'utf8', (err, data) => {
-    if (err) {
-      console.error(err);
-      return;
-    }
-    gpsString = data;
-  });
-}
-setInterval(updateFromText, 2000);
+app.get("/gps_data", readGpsDataFromFile);
+
+app.listen(port);
+
+console.log("Server started at http://localhost:" + port);
